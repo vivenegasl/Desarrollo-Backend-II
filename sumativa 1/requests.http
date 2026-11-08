@@ -1,0 +1,168 @@
+### ==============================================================================
+### CLÍNICA PETSALUD - COLECCIÓN DE PRUEBAS DE SEGURIDAD (HTTP & cURL)
+### ==============================================================================
+### Host local: http://localhost:8080
+### Documentación Swagger: http://localhost:8080/swagger-ui.html
+### Consola H2: http://localhost:8080/h2-console (JDBC URL: jdbc:h2:mem:petsalud_db, User: sa, Password: )
+
+### ------------------------------------------------------------------------------
+### 1. AUTENTICACIÓN: LOGIN DE USUARIOS
+### ------------------------------------------------------------------------------
+
+### 1.1 Iniciar Sesión como CLIENTE
+# @name loginCliente
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "cliente@petsalud.cl",
+  "password": "Cliente123!"
+}
+
+### Guardar token del cliente:
+@tokenCliente = {{loginCliente.response.body.token}}
+
+
+### 1.2 Iniciar Sesión como EMPLEADO
+# @name loginEmpleado
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "empleado@petsalud.cl",
+  "password": "Empleado123!"
+}
+
+### Guardar token del empleado:
+@tokenEmpleado = {{loginEmpleado.response.body.token}}
+
+
+### 1.3 Iniciar Sesión como GERENTE
+# @name loginGerente
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "gerente@petsalud.cl",
+  "password": "Gerente123!"
+}
+
+### Guardar token del gerente:
+@tokenGerente = {{loginGerente.response.body.token}}
+
+
+### 1.4 Intento de Login con Contraseña Incorrecta (Esperado: HTTP 401 Unauthorized)
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "cliente@petsalud.cl",
+  "password": "PasswordInvalida999!"
+}
+
+
+### ------------------------------------------------------------------------------
+### 2. ENDPOINTS PÚBLICOS
+### ------------------------------------------------------------------------------
+
+### 2.1 Consultar Catálogo Completo de Productos (Sin Token - Esperado: 200 OK)
+GET http://localhost:8080/api/productos
+
+### 2.2 Consultar Producto por Categoría (Sin Token - Esperado: 200 OK)
+GET http://localhost:8080/api/productos/categoria?categoria=Alimentos
+
+
+### ------------------------------------------------------------------------------
+### 3. PRUEBAS DE AUTORIZACIÓN BASADA EN ROLES (RBAC)
+### ------------------------------------------------------------------------------
+
+### 3.1 Petición sin Token a Endpoint Protegido (Esperado: HTTP 401 Unauthorized)
+GET http://localhost:8080/api/usuarios
+
+### 3.2 CLIENTE intentando listar usuarios (Endpoint de Gerente - Esperado: HTTP 403 Forbidden)
+GET http://localhost:8080/api/usuarios
+Authorization: Bearer {{tokenCliente}}
+
+### 3.3 EMPLEADO intentando listar usuarios (Endpoint de Gerente - Esperado: HTTP 403 Forbidden)
+GET http://localhost:8080/api/usuarios
+Authorization: Bearer {{tokenEmpleado}}
+
+### 3.4 GERENTE listando usuarios del sistema (Esperado: HTTP 200 OK)
+GET http://localhost:8080/api/usuarios
+Authorization: Bearer {{tokenGerente}}
+
+### 3.5 GERENTE consultando reporte consolidado de ventas (Esperado: HTTP 200 OK)
+GET http://localhost:8080/api/ventas
+Authorization: Bearer {{tokenGerente}}
+
+
+### ------------------------------------------------------------------------------
+### 4. OPERACIONES DE CLIENTE
+### ------------------------------------------------------------------------------
+
+### 4.1 Agendar una nueva cita médica
+POST http://localhost:8080/api/citas?mascotaId=1&veterinarioId=2&fechaHora=2026-11-20T15:00:00&motivo=Control+nutricional
+Authorization: Bearer {{tokenCliente}}
+
+### 4.2 Consultar citas de su mascota
+GET http://localhost:8080/api/citas/mascota/1
+Authorization: Bearer {{tokenCliente}}
+
+### 4.3 Consultar puntos de fidelización
+GET http://localhost:8080/api/recompensas/usuario/1
+Authorization: Bearer {{tokenCliente}}
+
+
+### ------------------------------------------------------------------------------
+### 5. OPERACIONES DE EMPLEADO / VETERINARIO
+### ------------------------------------------------------------------------------
+
+### 5.1 Actualizar estado de una cita médica
+PUT http://localhost:8080/api/citas/1/estado?estado=CONFIRMADA
+Authorization: Bearer {{tokenEmpleado}}
+
+### 5.2 Consultar alertas de productos con stock bajo (< 5 unidades)
+GET http://localhost:8080/api/productos/stock-bajo?cantidad=5
+Authorization: Bearer {{tokenEmpleado}}
+
+### 5.3 Registrar ficha en expediente médico
+POST http://localhost:8080/api/expedientes?mascotaId=1&veterinarioId=2
+Authorization: Bearer {{tokenEmpleado}}
+Content-Type: application/json
+
+{
+  "fecha": "2026-11-08T19:00:00",
+  "descripcion": "Atención dermatológica de urgencia",
+  "diagnostico": "Dermatitis por contacto leve en zona plantar",
+  "tratamiento": "Lavados con shampoo hipoalergénico y pomada antibacteriana por 7 días."
+}
+
+
+### ------------------------------------------------------------------------------
+### 6. PRUEBAS DE MITIGACIÓN DE VULNERABILIDADES (OWASP)
+### ------------------------------------------------------------------------------
+
+### 6.1 Prueba contra Inyección SQL en Login (Esperado: HTTP 400/401)
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin' OR '1'='1' --",
+  "password": "' OR '1'='1"
+}
+
+### 6.2 Prueba contra Inyección SQL en filtro de búsqueda (Esperado: 200 OK con lista vacía, sin crash)
+GET http://localhost:8080/api/productos/categoria?categoria=' UNION SELECT null, null, null, null, null, null --
+
+### 6.3 Prueba contra XSS en creación de producto (Esperado: 201 Created con Content-Type application/json)
+POST http://localhost:8080/api/productos
+Authorization: Bearer {{tokenEmpleado}}
+Content-Type: application/json
+
+{
+  "nombre": "Juguete Pelota <script>alert('XSS')</script>",
+  "descripcion": "<img src=x onerror=alert(1)> Pelota resistente de goma para morder",
+  "precio": 4990,
+  "stock": 20,
+  "categoria": "Juguetes"
+}
