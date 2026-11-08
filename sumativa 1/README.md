@@ -6,15 +6,10 @@
 
 ---
 
-## 📂 Contenido de esta Carpeta
+## 📂 Contenido de la Entrega
 
-Esta evaluación está organizada de manera estructurada en las siguientes secciones:
-
-- **[`backendpetsalud/`](./backendpetsalud/)**: Proyecto Spring Boot con todo el código fuente, configuración de seguridad (Spring Security 6 + JJWT), pruebas unitarias e integración (18 tests), y archivo `README.md` técnico del proyecto.
-- **[`formato_de_respuesta_semana_3.docx`](./formato_de_respuesta_semana_3.docx)**: Documento Word oficial con el informe técnico completo listo para entrega académica.
-- **[`formato_de_respuesta_semana_3.md`](./formato_de_respuesta_semana_3.md)**: Versión Markdown del informe técnico (para lectura rápida en GitHub).
-- **[`pauta_de_evaluaci_n_sumativa_semana_3.md`](./pauta_de_evaluaci_n_sumativa_semana_3.md)**: Criterios y rúbrica de evaluación docente.
-- **[`PBY2202_Exp1_S3_Sumativa_Víctor_Lindzay.pdf`](./PBY2202_Exp1_S3_Sumativa_Víctor_Lindzay.pdf)**: Enunciado oficial de la evaluación.
+- **[`backendpetsalud/`](./backendpetsalud/)**: Proyecto Spring Boot con el código fuente completo, configuración de seguridad (Spring Security 6 + JJWT), pruebas unitarias e integración (18 tests), y documentación técnica de la API.
+- **[`PBY2202_Exp1_S3_Sumativa_Víctor_Lindzay.pdf`](./PBY2202_Exp1_S3_Sumativa_Víctor_Lindzay.pdf)**: Documento oficial en PDF con las respuestas, análisis de amenazas, justificación técnica y guía de configuración de la evaluación.
 
 ---
 

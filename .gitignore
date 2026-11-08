@@ -46,3 +46,6 @@ Thumbs.db
 # Microsoft Office temporary files
 ~$*
 ~*.tmp
+
+# Documents (only PDF submitted to GitHub)
+*.docx
